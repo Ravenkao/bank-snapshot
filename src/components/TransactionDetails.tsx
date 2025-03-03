@@ -41,14 +41,12 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
   };
   
   const handleDownloadPDF = () => {
-    // In a real extension, this would generate a PDF of the entire transaction data
     toast({
       title: "PDF Download",
       description: "Downloading all transaction details as PDF",
       variant: "default",
     });
     
-    // Simulating PDF download
     setTimeout(() => {
       toast({
         title: "Download Complete",
@@ -69,7 +67,7 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
   };
   
   return (
-    <div className="w-full p-5 bg-white rounded-xl shadow-sm border border-gray-100 animate-fade-in">
+    <div className="w-full p-5 bg-white rounded-xl shadow-sm border border-gray-100 animate-fade-in relative pb-32">
       <div className="flex items-center justify-between mb-5">
         <div>
           <div className="chip bg-blue-50 text-blue-700 mb-2">
@@ -86,7 +84,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
       </div>
       
       <div className="space-y-4">
-        {/* Date & Recurrence */}
         <div className="transaction-row">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" />
@@ -103,7 +100,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         </div>
         
-        {/* Payment Source */}
         {transaction.paymentSource && (
           <div className="transaction-row">
             <div className="flex items-center gap-2">
@@ -121,7 +117,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         )}
         
-        {/* Payment Destination */}
         {transaction.paymentDestination && (
           <div className="transaction-row">
             <div className="flex items-center gap-2">
@@ -139,7 +134,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         )}
         
-        {/* Description */}
         {transaction.description && (
           <div className="transaction-row">
             <div className="flex items-center gap-2">
@@ -150,7 +144,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         )}
         
-        {/* Tags */}
         {transaction.tag && (
           <div className="transaction-row">
             <div className="flex items-center gap-2">
@@ -161,7 +154,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         )}
         
-        {/* Indicators Row */}
         <div className="transaction-row">
           <div className="flex items-center gap-2">
             <span className="transaction-label">Indicators</span>
@@ -197,7 +189,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         </div>
         
-        {/* Exclude from Insights */}
         <div className="transaction-row">
           <div className="flex items-center gap-2">
             <ToggleLeft className="w-4 h-4 text-gray-400" />
@@ -208,28 +199,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </span>
         </div>
         
-        {/* Action Buttons - Fixed at bottom */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4 border-t border-gray-100">
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={handleDownloadPDF}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download as PDF
-          </Button>
-          
-          <Button 
-            variant="secondary" 
-            className="flex-1"
-            onClick={handleSendToSavi}
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Send to Savi Finance
-          </Button>
-        </div>
-        
-        {/* Metadata Toggle */}
         <Button 
           variant="ghost" 
           className="w-full flex items-center justify-between text-gray-500 text-sm mt-2"
@@ -239,7 +208,6 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           {showMetadata ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </Button>
         
-        {/* Metadata Section */}
         {showMetadata && (
           <div className="p-3 bg-gray-50 rounded-lg text-sm space-y-2 animate-slide-up">
             <div className="flex items-center justify-between">
@@ -283,6 +251,26 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
             )}
           </div>
         )}
+      </div>
+      
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 flex flex-col sm:flex-row gap-3 z-10">
+        <Button 
+          variant="outline" 
+          className="flex-1"
+          onClick={handleDownloadPDF}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download as PDF
+        </Button>
+        
+        <Button 
+          variant="secondary" 
+          className="flex-1"
+          onClick={handleSendToSavi}
+        >
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Send to Savi Finance
+        </Button>
       </div>
     </div>
   );
