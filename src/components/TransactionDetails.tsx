@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Transaction } from '@/utils/parseTransaction';
 import Logo from '@/components/Logo';
@@ -42,10 +41,10 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
   };
   
   const handleDownloadPDF = () => {
-    // In a real extension, this would generate a PDF
+    // In a real extension, this would generate a PDF of the entire transaction data
     toast({
       title: "PDF Download",
-      description: "Transaction details PDF download started",
+      description: "Downloading all transaction details as PDF",
       variant: "default",
     });
     
@@ -53,7 +52,7 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
     setTimeout(() => {
       toast({
         title: "Download Complete",
-        description: "Transaction details have been downloaded as PDF",
+        description: "All transaction details have been downloaded as PDF",
         variant: "default",
       });
     }, 1500);
@@ -209,8 +208,8 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </span>
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 mt-4 border-t border-gray-100">
           <Button 
             variant="outline" 
             className="flex-1"
@@ -233,7 +232,7 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
         {/* Metadata Toggle */}
         <Button 
           variant="ghost" 
-          className="w-full flex items-center justify-between text-gray-500 text-sm"
+          className="w-full flex items-center justify-between text-gray-500 text-sm mt-2"
           onClick={() => setShowMetadata(!showMetadata)}
         >
           <span>Metadata</span>
