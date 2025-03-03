@@ -17,9 +17,12 @@ import {
   DollarSign, 
   ToggleLeft, 
   ChevronDown, 
-  ChevronUp
+  ChevronUp,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from "@/components/ui/use-toast";
 
 interface TransactionDetailsProps {
   transaction: Transaction;
@@ -27,6 +30,7 @@ interface TransactionDetailsProps {
 
 const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
   const [showMetadata, setShowMetadata] = useState(false);
+  const { toast } = useToast();
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -34,6 +38,34 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
       year: 'numeric', 
       month: 'short', 
       day: 'numeric' 
+    });
+  };
+  
+  const handleDownloadPDF = () => {
+    // In a real extension, this would generate a PDF
+    toast({
+      title: "PDF Download",
+      description: "Transaction details PDF download started",
+      variant: "default",
+    });
+    
+    // Simulating PDF download
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: "Transaction details have been downloaded as PDF",
+        variant: "default",
+      });
+    }, 1500);
+  };
+  
+  const handleSendToSavi = () => {
+    window.open('https://forecasting.financesavi.com/', '_blank');
+    
+    toast({
+      title: "Redirecting",
+      description: "Opening Savi Finance in a new tab",
+      variant: "default",
     });
   };
   
@@ -175,6 +207,27 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           <span className="transaction-value">
             {transaction.excludeFromInsights ? "Yes" : "No"}
           </span>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={handleDownloadPDF}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download as PDF
+          </Button>
+          
+          <Button 
+            variant="secondary" 
+            className="flex-1"
+            onClick={handleSendToSavi}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Send to Savi Finance
+          </Button>
         </div>
         
         {/* Metadata Toggle */}
