@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -6,7 +5,7 @@ import {
   AlertCircle, 
   CheckCircle2, 
   ChevronDown, 
-  Bank
+  Building
 } from 'lucide-react';
 import { Transaction, parseTransactionFromPage, parseTransactionFromBank } from '@/utils/parseTransaction';
 import TransactionDetails from './TransactionDetails';
@@ -151,7 +150,7 @@ const TransactionParser = () => {
                   disabled={isLoading}
                 >
                   <div className="flex items-center gap-2">
-                    <Bank className="h-4 w-4" />
+                    <Building className="h-4 w-4" />
                     <span>Select Demo Bank</span>
                   </div>
                   <ChevronDown className="h-4 w-4 opacity-50" />
