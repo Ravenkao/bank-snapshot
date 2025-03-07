@@ -15,20 +15,18 @@ cp -r dist/* extension/
 cp public/manifest.json extension/
 cp public/content.js extension/
 
-# Make icons directory
-mkdir -p extension/icons
-
 # Copy icons
-if [ -f public/icons/icon16.png ] && [ -f public/icons/icon48.png ] && [ -f public/icons/icon128.png ]; then
-  echo "Copying icon files..."
-  cp public/icons/icon16.png extension/icons/
-  cp public/icons/icon48.png extension/icons/
-  cp public/icons/icon128.png extension/icons/
-else
-  echo "Icon files not found, creating placeholder icons..."
-  # Using the Savi Finance logo if available
+echo "Copying icon files..."
+cp public/icons/icon16.png extension/icons/ || echo "Warning: Could not copy icon16.png"
+cp public/icons/icon48.png extension/icons/ || echo "Warning: Could not copy icon48.png"
+cp public/icons/icon128.png extension/icons/ || echo "Warning: Could not copy icon128.png"
+
+# If icons are missing, create simple placeholder versions
+if [ ! -f extension/icons/icon16.png ] || [ ! -f extension/icons/icon48.png ] || [ ! -f extension/icons/icon128.png ]; then
+  echo "Some icons missing, creating simple versions..."
+  # Use the Savi Finance logo if available
   if [ -f public/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png ]; then
-    echo "Using Savi Finance logo as icon..."
+    echo "Using Savi Finance logo as fallback icon..."
     cp public/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png extension/icons/icon16.png
     cp public/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png extension/icons/icon48.png
     cp public/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png extension/icons/icon128.png

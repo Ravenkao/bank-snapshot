@@ -1,3 +1,4 @@
+
 export interface Transaction {
   date: string;
   description: string;
@@ -46,8 +47,13 @@ export const findLogo = (name: string): string | undefined => {
   return undefined;
 };
 
-// Check if running in Chrome extension environment
-const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+// Check if running in Chrome extension environment - safely check for Chrome API
+const isChromeExtension = (): boolean => {
+  return typeof window !== 'undefined' && 
+         typeof chrome !== 'undefined' && 
+         typeof chrome.runtime !== 'undefined' && 
+         typeof chrome.runtime.id !== 'undefined';
+};
 
 /**
  * Parse transaction data from the current active tab using content script
@@ -55,18 +61,28 @@ const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chr
 export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
   try {
     // If not in a Chrome extension environment, use mock data
-    if (!isChromeExtension) {
+    if (!isChromeExtension()) {
       console.log("Not running in Chrome extension, using mock data");
       await new Promise(resolve => setTimeout(resolve, 1500));
       return getMockTransactions();
     }
     
-    // Get the active tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Get the active tab - safe access to Chrome API
+    const getActiveTab = async () => {
+      try {
+        return await chrome.tabs.query({ active: true, currentWindow: true });
+      } catch (error) {
+        console.error("Error accessing chrome.tabs API:", error);
+        return [];
+      }
+    };
+    
+    const tabs = await getActiveTab();
+    const tab = tabs[0];
     
     if (!tab || !tab.id) {
       console.error("No active tab found");
-      return [];
+      return getMockTransactions();
     }
     
     // Check if we're on a supported website
@@ -83,20 +99,25 @@ export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
     console.log("Sending message to content script");
     
     return new Promise((resolve) => {
-      chrome.tabs.sendMessage(tab.id!, { action: "parseTransactions" }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error("Error communicating with content script:", chrome.runtime.lastError);
-          resolve([]);
-          return;
-        }
-        
-        if (response && response.success && response.transactions.length > 0) {
-          resolve(response.transactions);
-        } else {
-          console.log("No transactions found or error in content script");
-          resolve([]);
-        }
-      });
+      try {
+        chrome.tabs.sendMessage(tab.id!, { action: "parseTransactions" }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error("Error communicating with content script:", chrome.runtime.lastError);
+            resolve(getMockTransactions());
+            return;
+          }
+          
+          if (response && response.success && response.transactions.length > 0) {
+            resolve(response.transactions);
+          } else {
+            console.log("No transactions found or error in content script");
+            resolve(getMockTransactions());
+          }
+        });
+      } catch (error) {
+        console.error("Error in chrome messaging:", error);
+        resolve(getMockTransactions());
+      }
     });
   } catch (error) {
     console.error("Error parsing transactions:", error);
