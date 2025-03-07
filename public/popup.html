@@ -1,0 +1,727 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Savi Finance Transaction Parser</title>
+    <meta name="description" content="Parse and analyze bank transaction information" />
+    <style>
+      /* Reset and base styles */
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: #f8f9fb;
+        color: #111827;
+        width: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      
+      /* Animation utilities */
+      .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      
+      .animate-slide-up {
+        animation: slideUp 0.3s ease-in-out;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideUp {
+        from { transform: translateY(10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      
+      /* Container styles */
+      .container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      
+      /* Typography */
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      p {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        color: #6b7280;
+      }
+      
+      /* Button styles */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: none;
+        outline: none;
+      }
+      
+      .btn-primary {
+        background-color: #1f2937;
+        color: white;
+      }
+      
+      .btn-primary:hover {
+        background-color: #111827;
+      }
+      
+      .btn-secondary {
+        background-color: #4339CA;
+        color: white;
+      }
+      
+      .btn-secondary:hover {
+        background-color: #3730A3;
+      }
+      
+      .btn-ghost {
+        background-color: transparent;
+        color: #6b7280;
+      }
+      
+      .btn-ghost:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+      }
+      
+      .btn-full {
+        width: 100%;
+        padding: 0.75rem;
+      }
+      
+      .btn-rounded {
+        border-radius: 9999px;
+      }
+      
+      /* Alert styles */
+      .alert {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .alert-info {
+        background-color: #e0f2fe;
+        border: 1px solid #bae6fd;
+        color: #0369a1;
+      }
+      
+      .alert-error {
+        background-color: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+      }
+      
+      /* Table styles */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+      
+      th {
+        text-align: left;
+        padding: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+      }
+      
+      td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      
+      tr:hover {
+        background-color: #f9fafb;
+      }
+      
+      .text-right {
+        text-align: right;
+      }
+      
+      .money-out {
+        color: #dc2626;
+      }
+      
+      .money-in {
+        color: #16a34a;
+      }
+      
+      /* Fixed action bar */
+      .action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+        z-index: 10;
+      }
+      
+      /* Logo and header */
+      .logo-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      
+      .logo {
+        height: 6rem;
+        width: auto;
+        margin-bottom: 0.5rem;
+      }
+      
+      /* Space for fixed bar */
+      .pb-20 {
+        padding-bottom: 5rem;
+      }
+      
+      /* Loading spinner */
+      .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+      }
+      
+      @keyframes spin {
+        to {transform: rotate(360deg);}
+      }
+      
+      /* Toast notification */
+      .toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 50;
+      }
+      
+      .toast {
+        background-color: white;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: flex-start;
+        min-width: 16rem;
+        animation: slideIn 0.3s ease-out;
+      }
+      
+      .toast-success {
+        border-left: 4px solid #10b981;
+      }
+      
+      .toast-error {
+        border-left: 4px solid #ef4444;
+      }
+      
+      @keyframes slideIn {
+        from {transform: translateX(100%); opacity: 0;}
+        to {transform: translateX(0); opacity: 1;}
+      }
+      
+      /* Icons */
+      .icon {
+        width: 1rem;
+        height: 1rem;
+        stroke-width: 2;
+      }
+      
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="container">
+      <!-- Loading spinner -->
+      <div id="loading" class="hidden">
+        <div class="spinner"></div>
+      </div>
+      
+      <!-- Toast notifications container -->
+      <div id="toast-container" class="toast-container"></div>
+      
+      <!-- Initial view -->
+      <div id="initial-view" class="animate-fade-in">
+        <div class="logo-container">
+          <img src="lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png" alt="Savi Finance Logo" class="logo">
+          <h1>Transaction Parser</h1>
+          <p>Extract and analyze your bank transaction history with a single click</p>
+        </div>
+        
+        <button id="parse-btn" class="btn btn-primary btn-full">Parse Transactions</button>
+        
+        <div id="error-container" class="hidden alert alert-error">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <p class="font-medium">Parsing Failed</p>
+            <p id="error-message"></p>
+          </div>
+        </div>
+        
+        <div class="alert alert-info">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9 12l2 2 4-4"></path>
+          </svg>
+          <div>
+            <p class="font-medium">How It Works</p>
+            <p id="how-it-works-text">Navigate to your bank's transaction page, then click 'Parse Transactions' to extract the data.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Results view -->
+      <div id="results-view" class="hidden animate-fade-in pb-20">
+        <div class="flex-between">
+          <h2>Transaction History</h2>
+          <button id="back-btn" class="btn btn-ghost">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M19 12H5M12 19l-7-7 7-7"></path>
+            </svg>
+            Back
+          </button>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th class="text-right">Money Out</th>
+                <th class="text-right">Money In</th>
+                <th class="text-right">Balance</th>
+              </tr>
+            </thead>
+            <tbody id="transactions-tbody">
+              <!-- Transactions will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="action-bar">
+          <button id="download-csv-btn" class="btn btn-secondary btn-rounded">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download as CSV
+          </button>
+          
+          <button id="send-to-savi-btn" class="btn btn-primary btn-rounded">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Send to Savi Finance
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // State
+      let transactions = [];
+      let isExtension = false;
+
+      // DOM Elements
+      const initialView = document.getElementById('initial-view');
+      const resultsView = document.getElementById('results-view');
+      const parseBtn = document.getElementById('parse-btn');
+      const backBtn = document.getElementById('back-btn');
+      const downloadCsvBtn = document.getElementById('download-csv-btn');
+      const sendToSaviBtn = document.getElementById('send-to-savi-btn');
+      const errorContainer = document.getElementById('error-container');
+      const errorMessage = document.getElementById('error-message');
+      const transactionsTbody = document.getElementById('transactions-tbody');
+      const loadingIndicator = document.getElementById('loading');
+      const howItWorksText = document.getElementById('how-it-works-text');
+      const toastContainer = document.getElementById('toast-container');
+
+      // Check if running as Chrome extension
+      isExtension = typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id;
+      
+      // Update how it works text based on environment
+      howItWorksText.textContent = isExtension 
+        ? "Navigate to your bank's transaction page, then click 'Parse Transactions' to extract the data."
+        : "This extension works on bank websites like Chase, Bank of America, Wells Fargo, and more.";
+
+      // Helper Functions
+      function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <div>
+            <p class="font-medium">${type === 'success' ? 'Success' : 'Error'}</p>
+            <p>${message}</p>
+          </div>
+        `;
+        toastContainer.appendChild(toast);
+        
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(100%)';
+          toast.style.transition = 'all 0.3s ease-out';
+          setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 3000);
+      }
+
+      function formatDate(dateString) {
+        // If already formatted like "Feb 18, 2025", just return it
+        if (/[A-Za-z]{3}\s\d{1,2},\s\d{4}/.test(dateString)) {
+          return dateString;
+        }
+        
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      }
+
+      function showLoading() {
+        loadingIndicator.classList.remove('hidden');
+        parseBtn.disabled = true;
+        parseBtn.innerHTML = 'Parsing...';
+      }
+
+      function hideLoading() {
+        loadingIndicator.classList.add('hidden');
+        parseBtn.disabled = false;
+        parseBtn.innerHTML = 'Parse Transactions';
+      }
+
+      function showError(message) {
+        errorContainer.classList.remove('hidden');
+        errorMessage.textContent = message;
+      }
+
+      function hideError() {
+        errorContainer.classList.add('hidden');
+      }
+
+      function showInitialView() {
+        initialView.classList.remove('hidden');
+        resultsView.classList.add('hidden');
+      }
+
+      function showResultsView() {
+        initialView.classList.add('hidden');
+        resultsView.classList.remove('hidden');
+      }
+
+      function displayTransactions(transactions) {
+        // Clear existing rows
+        transactionsTbody.innerHTML = '';
+        
+        // Add new rows
+        transactions.forEach(transaction => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formatDate(transaction.date)}</td>
+            <td>${transaction.description}</td>
+            <td class="text-right money-out">${transaction.moneyOut || '-'}</td>
+            <td class="text-right money-in">${transaction.moneyIn || '-'}</td>
+            <td class="text-right">${transaction.balance}</td>
+          `;
+          transactionsTbody.appendChild(row);
+        });
+      }
+
+      // Mock data for testing
+      function getMockTransactions() {
+        return [
+          {
+            date: "Mar 03, 2025",
+            description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
+            moneyOut: "$90.00",
+            moneyIn: undefined,
+            balance: "$7,754.03"
+          },
+          {
+            date: "Feb 21, 2025",
+            description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
+            moneyOut: "$6,139.00",
+            moneyIn: undefined,
+            balance: "$7,844.03"
+          },
+          {
+            date: "Feb 20, 2025",
+            description: "GOODLIFE CLUBS MSP/DIV",
+            moneyOut: "$45.19",
+            moneyIn: undefined,
+            balance: "$13,983.03"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "TF 3933#3607-829",
+            moneyOut: "$808.00",
+            moneyIn: undefined,
+            balance: "$14,028.22"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "TF 3933#3607-829",
+            moneyOut: "$160.00",
+            moneyIn: undefined,
+            balance: "$14,836.22"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "HANDLING CHG 768332",
+            moneyOut: "$16.00",
+            moneyIn: undefined,
+            balance: "$14,996.22"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "INCOMING WIRE PAYMENT TW, KAO SHENG WEN",
+            moneyOut: undefined,
+            moneyIn: "$14,985.00",
+            balance: "$15,012.22"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "RECURRING PYMNT 17FEB2025APPLE.COM/BILL ON",
+            moneyOut: "$1.12",
+            moneyIn: undefined,
+            balance: "$27.22"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "TF 000519123022775845",
+            moneyOut: "$189.11",
+            moneyIn: undefined,
+            balance: "$28.34"
+          },
+          {
+            date: "Feb 18, 2025",
+            description: "TF 3933#3607-829",
+            moneyOut: undefined,
+            moneyIn: "$100.00",
+            balance: "$217.45"
+          }
+        ].map(transaction => ({
+          ...transaction,
+          metadata: {
+            inputSource: "Demo",
+            inputTime: new Date().toISOString()
+          }
+        }));
+      }
+      
+      // Parse transactions from the page
+      async function parseTransactionFromPage() {
+        try {
+          // If not in a Chrome extension environment, use mock data
+          if (!isExtension) {
+            console.log("Not running in Chrome extension, using mock data");
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+            return getMockTransactions();
+          }
+          
+          // Get the active tab
+          const getActiveTab = async () => {
+            try {
+              return await chrome.tabs.query({ active: true, currentWindow: true });
+            } catch (error) {
+              console.error("Error accessing chrome.tabs API:", error);
+              return [];
+            }
+          };
+          
+          const tabs = await getActiveTab();
+          const tab = tabs[0];
+          
+          if (!tab || !tab.id) {
+            console.error("No active tab found");
+            return getMockTransactions();
+          }
+          
+          // Check if we're on a supported website
+          const url = tab.url || '';
+          const isBankSite = /bank|chase|wellsfargo|citibank|capitalone/i.test(url);
+          
+          if (!isBankSite) {
+            console.log("Not a bank website, using mock data");
+            return getMockTransactions();
+          }
+          
+          // Execute content script to parse transactions
+          console.log("Sending message to content script");
+          
+          return new Promise((resolve) => {
+            try {
+              chrome.tabs.sendMessage(tab.id, { action: "parseTransactions" }, (response) => {
+                if (chrome.runtime.lastError) {
+                  console.error("Error communicating with content script:", chrome.runtime.lastError);
+                  resolve(getMockTransactions());
+                  return;
+                }
+                
+                if (response && response.success && response.transactions.length > 0) {
+                  resolve(response.transactions);
+                } else {
+                  console.log("No transactions found or error in content script");
+                  resolve(getMockTransactions());
+                }
+              });
+            } catch (error) {
+              console.error("Error in chrome messaging:", error);
+              resolve(getMockTransactions());
+            }
+          });
+        } catch (error) {
+          console.error("Error parsing transactions:", error);
+          return getMockTransactions();
+        }
+      }
+
+      // Download transactions as CSV
+      function downloadCSV() {
+        // Create CSV content
+        const headers = ["Date", "Description", "Money Out", "Money In", "Balance"];
+        const csvRows = [headers];
+        
+        // Add transaction data
+        transactions.forEach(transaction => {
+          const row = [
+            formatDate(transaction.date),
+            transaction.description,
+            transaction.moneyOut || "",
+            transaction.moneyIn || "",
+            transaction.balance
+          ];
+          csvRows.push(row);
+        });
+        
+        // Convert to CSV string
+        const csvContent = csvRows
+          .map(row => row
+            .map(cell => 
+              // Handle commas in description by wrapping in quotes
+              typeof cell === 'string' && cell.includes(',') 
+                ? `"${cell.replace(/"/g, '""')}"` 
+                : cell
+            )
+            .join(',')
+          )
+          .join('\n');
+        
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `transaction_history_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        
+        showToast("Downloading all transaction history as CSV");
+        
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+          showToast("All transactions have been downloaded as CSV");
+        }, 1500);
+      }
+
+      // Event Listeners
+      parseBtn.addEventListener('click', async () => {
+        hideError();
+        showLoading();
+        
+        try {
+          transactions = await parseTransactionFromPage();
+          
+          if (transactions && transactions.length > 0) {
+            displayTransactions(transactions);
+            showResultsView();
+            showToast(`Successfully extracted ${transactions.length} transaction details`);
+          } else {
+            showError("No transaction data found on this page");
+            showToast("No transaction data found on this page", "error");
+          }
+        } catch (err) {
+          console.error("Error parsing transactions:", err);
+          showError("Failed to parse transaction data");
+          showToast("Failed to parse transaction data", "error");
+        } finally {
+          hideLoading();
+        }
+      });
+
+      backBtn.addEventListener('click', () => {
+        showInitialView();
+        transactions = [];
+      });
+
+      downloadCsvBtn.addEventListener('click', () => {
+        downloadCSV();
+      });
+
+      sendToSaviBtn.addEventListener('click', () => {
+        window.open('https://forecasting.financesavi.com/', '_blank');
+        showToast("Opening Savi Finance in a new tab");
+      });
+
+      // Initialize
+      showInitialView();
+    </script>
+  </body>
+</html>

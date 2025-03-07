@@ -4,16 +4,18 @@
 # Build script for Chrome Extension
 echo "Building Savi Finance Transaction Parser extension..."
 
-# Build the React application
-npm run build
-
 # Create extension directory
 mkdir -p extension/icons
+mkdir -p extension/lovable-uploads
 
-# Copy build files to extension directory
-cp -r dist/* extension/
+# Copy static files directly to extension directory
 cp public/manifest.json extension/
 cp public/content.js extension/
+cp public/popup.html extension/
+
+# Copy image assets
+echo "Copying asset files..."
+cp public/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png extension/lovable-uploads/ || echo "Warning: Could not copy Savi Finance logo"
 
 # Copy icons
 echo "Copying icon files..."
