@@ -1,34 +1,13 @@
-
 export interface Transaction {
   date: string;
   description: string;
   moneyOut?: string;
   moneyIn?: string;
   balance: string;
-  type?: string;
-  category?: string;
-  recurrence?: string;
-  paymentSource?: {
-    name: string;
-    logoUrl?: string;
-  };
-  paymentDestination?: {
-    name: string;
-    logoUrl?: string;
-  };
-  receipt?: string;
-  securityIndicator?: string;
-  privacyIndicator?: string;
-  tag?: string;
-  reminder?: string;
   metadata: {
     inputSource: string;
     inputTime: string;
-    editTimes?: string[];
-    creator?: string;
   };
-  cashback?: string;
-  excludeFromInsights: boolean;
 }
 
 // Mock available logos for demonstration purposes
@@ -70,47 +49,52 @@ export const findLogo = (name: string): string | undefined => {
 /**
  * Parse transaction data from the current active tab
  */
-export const parseTransactionFromPage = async (): Promise<Transaction | null> => {
+export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
   try {
-    // In a real extension, we would inject a content script to parse the DOM
-    // For demo purposes, we'll simulate finding a transaction table and extracting data
-    
-    // This simulates extracting data from a bank statement table like in the image
-    const mockTransaction: Transaction = {
-      date: "Mar 03, 2025",
-      description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
-      moneyOut: "$90.00",
-      moneyIn: undefined,
-      balance: "$7,754.03",
-      type: "Transfer",
-      category: "Payments",
-      paymentSource: {
-        name: "Checking Account",
-        logoUrl: findLogo("chase")
+    // This simulates extracting multiple transactions from a bank statement table
+    return [
+      {
+        date: "Mar 03, 2025",
+        description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
+        moneyOut: "$90.00",
+        moneyIn: undefined,
+        balance: "$7,754.03",
+        metadata: {
+          inputSource: "Automatic",
+          inputTime: new Date().toISOString()
+        }
       },
-      paymentDestination: {
-        name: "Lulu",
-        logoUrl: undefined
+      {
+        date: "Feb 21, 2025",
+        description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
+        moneyOut: "$6,139.00",
+        moneyIn: undefined,
+        balance: "$7,844.03",
+        metadata: {
+          inputSource: "Automatic",
+          inputTime: new Date().toISOString()
+        }
       },
-      securityIndicator: "Verified",
-      privacyIndicator: "Private",
-      metadata: {
-        inputSource: "Automatic",
-        inputTime: new Date().toISOString(),
-        creator: "Extension"
-      },
-      excludeFromInsights: false
-    };
-    
-    return mockTransaction;
+      {
+        date: "Feb 20, 2025",
+        description: "GOODLIFE CLUBS MSP/DIV",
+        moneyOut: "$45.19",
+        moneyIn: undefined,
+        balance: "$13,983.03",
+        metadata: {
+          inputSource: "Automatic",
+          inputTime: new Date().toISOString()
+        }
+      }
+    ];
   } catch (error) {
-    console.error("Error parsing transaction:", error);
-    return null;
+    console.error("Error parsing transactions:", error);
+    return [];
   }
 };
 
 // Function to simulate parsing from different banks
-export const parseTransactionFromBank = (bankName: string): Transaction | null => {
+export const parseTransactionFromBank = (bankName: string): Transaction[] => {
   // Sample transaction data based on the reference image
   const sampleTransactions = [
     {
@@ -185,52 +169,12 @@ export const parseTransactionFromBank = (bankName: string): Transaction | null =
     }
   ];
   
-  // Select a random transaction from our sample data
-  const randomTransaction = sampleTransactions[Math.floor(Math.random() * sampleTransactions.length)];
-  
-  // Classify transaction type based on description
-  let type = "Purchase";
-  if (randomTransaction.description.includes("ETRNSFR") || randomTransaction.description.includes("WIRE") || randomTransaction.description.includes("TF ")) {
-    type = "Transfer";
-  } else if (randomTransaction.description.includes("PAYMENT") || randomTransaction.description.includes("PYMNT")) {
-    type = "Payment";
-  } else if (randomTransaction.moneyIn && !randomTransaction.moneyOut) {
-    type = "Deposit";
-  }
-  
-  // Determine a category based on description
-  let category = "Uncategorized";
-  if (randomTransaction.description.includes("BILL")) {
-    category = "Bills";
-  } else if (randomTransaction.description.includes("CLUBS")) {
-    category = "Entertainment";
-  } else if (randomTransaction.description.includes("APPLE")) {
-    category = "Subscriptions";
-  } else if (type === "Transfer") {
-    category = "Transfers";
-  } else if (type === "Deposit") {
-    category = "Income";
-  }
-  
-  return {
-    ...randomTransaction,
-    type,
-    category,
-    paymentSource: {
-      name: `${bankName} Account`,
-      logoUrl: findLogo(bankName)
-    },
-    paymentDestination: randomTransaction.moneyOut ? {
-      name: randomTransaction.description.split(' ')[0],
-      logoUrl: findLogo(randomTransaction.description.split(' ')[0])
-    } : undefined,
-    securityIndicator: Math.random() > 0.5 ? "Verified" : undefined,
-    privacyIndicator: Math.random() > 0.5 ? "Private" : "Public",
+  // Return all transactions with added metadata
+  return sampleTransactions.map(transaction => ({
+    ...transaction,
     metadata: {
       inputSource: "Manual",
-      inputTime: new Date().toISOString(),
-      creator: "User"
-    },
-    excludeFromInsights: false
-  };
+      inputTime: new Date().toISOString()
+    }
+  }));
 };

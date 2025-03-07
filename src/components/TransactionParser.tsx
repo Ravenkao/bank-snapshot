@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -18,7 +19,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 
 const TransactionParser = () => {
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -29,13 +30,13 @@ const TransactionParser = () => {
     
     try {
       // In a real extension, this would inject a script to parse the current page
-      const result = await parseTransactionFromPage();
+      const results = await parseTransactionFromPage();
       
-      if (result) {
-        setTransaction(result);
+      if (results && results.length > 0) {
+        setTransactions(results);
         toast({
-          title: "Transaction parsed",
-          description: "Successfully extracted transaction details",
+          title: "Transactions parsed",
+          description: `Successfully extracted ${results.length} transaction details`,
           variant: "default",
         });
       } else {
@@ -47,7 +48,7 @@ const TransactionParser = () => {
         });
       }
     } catch (err) {
-      console.error("Error parsing transaction:", err);
+      console.error("Error parsing transactions:", err);
       setError("Failed to parse transaction data");
       toast({
         title: "Error",
@@ -66,13 +67,13 @@ const TransactionParser = () => {
     // Simulate network delay
     setTimeout(() => {
       try {
-        const result = parseTransactionFromBank(bankName);
+        const results = parseTransactionFromBank(bankName);
         
-        if (result) {
-          setTransaction(result);
+        if (results && results.length > 0) {
+          setTransactions(results);
           toast({
-            title: "Demo transaction loaded",
-            description: `Loaded sample transaction from ${bankName}`,
+            title: "Demo transactions loaded",
+            description: `Loaded ${results.length} sample transactions from ${bankName}`,
             variant: "default",
           });
         } else {
@@ -88,16 +89,16 @@ const TransactionParser = () => {
   };
   
   const resetTransaction = () => {
-    setTransaction(null);
+    setTransactions([]);
     setError(null);
   };
 
   return (
     <div className="w-full max-w-md mx-auto p-6 space-y-6 animate-fade-in">
-      {transaction ? (
+      {transactions.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Transaction Details</h3>
+            <h3 className="text-lg font-medium">Transaction History</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -108,7 +109,7 @@ const TransactionParser = () => {
             </Button>
           </div>
           
-          <TransactionDetails transaction={transaction} />
+          <TransactionDetails transactions={transactions} />
         </div>
       ) : (
         <div className="space-y-8">
@@ -118,7 +119,7 @@ const TransactionParser = () => {
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Transaction Parser</h1>
             <p className="text-muted-foreground text-balance">
-              Extract and analyze your bank transaction information with a single click
+              Extract and analyze your bank transaction history with a single click
             </p>
           </div>
           
@@ -128,7 +129,7 @@ const TransactionParser = () => {
               onClick={handleParseTransaction}
               disabled={isLoading}
             >
-              {isLoading ? "Parsing..." : "Parse Transaction"}
+              {isLoading ? "Parsing..." : "Parse Transactions"}
             </Button>
             
             <div className="relative">
@@ -187,7 +188,7 @@ const TransactionParser = () => {
             <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">How It Works</p>
-              <p className="text-sm">Navigate to your bank's transaction page, then click "Parse Transaction" to extract details.</p>
+              <p className="text-sm">Navigate to your bank's transaction page, then click "Parse Transactions" to extract all transaction details.</p>
             </div>
           </div>
         </div>
