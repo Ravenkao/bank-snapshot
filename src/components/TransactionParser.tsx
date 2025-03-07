@@ -19,7 +19,8 @@ const TransactionParser = () => {
 
   // Check if running as Chrome extension
   useEffect(() => {
-    setIsExtension(typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id);
+    // Fix the type error - use a boolean instead of string
+    setIsExtension(typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id);
   }, []);
 
   const handleParseTransaction = async () => {

@@ -95,10 +95,10 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
   };
   
   return (
-    <div className="w-full animate-fade-in">
+    <div className="w-full animate-fade-in relative pb-20">
       <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
       
-      <div className="overflow-x-auto mb-14">
+      <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 text-left">
@@ -123,7 +123,8 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
         </table>
       </div>
       
-      <div className="flex gap-3 mt-4 justify-between">
+      {/* Fixed buttons at the bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 justify-between z-10">
         <Button 
           className="flex items-center justify-center gap-2 text-sm bg-[#4339CA] hover:bg-[#3730A3] text-white rounded-full px-4 py-2"
           onClick={handleDownloadCSV}
