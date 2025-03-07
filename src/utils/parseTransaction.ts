@@ -67,6 +67,8 @@ export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
       return getMockTransactions();
     }
     
+    console.log("Running in Chrome extension environment, attempting to parse transactions");
+    
     // Get the active tab - safe access to Chrome API
     const getActiveTab = async () => {
       try {
@@ -95,30 +97,62 @@ export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
       return getMockTransactions();
     }
     
-    // Execute content script to parse transactions
-    console.log("Sending message to content script");
-    
-    return new Promise((resolve) => {
-      try {
+    // Check if the content script is already injected
+    try {
+      // First, try communicating with the content script
+      return new Promise((resolve) => {
+        console.log("Attempting to communicate with existing content script");
+        
         chrome.tabs.sendMessage(tab.id!, { action: "parseTransactions" }, (response) => {
+          // If there's no error but no response, we need to inject the content script
           if (chrome.runtime.lastError) {
-            console.error("Error communicating with content script:", chrome.runtime.lastError);
-            resolve(getMockTransactions());
-            return;
-          }
-          
-          if (response && response.success && response.transactions.length > 0) {
+            console.warn("Content script not ready:", chrome.runtime.lastError);
+            
+            // Inject the content script
+            chrome.scripting.executeScript(
+              {
+                target: { tabId: tab.id! },
+                files: ["content.js"]
+              },
+              () => {
+                if (chrome.runtime.lastError) {
+                  console.error("Failed to inject content script:", chrome.runtime.lastError);
+                  resolve(getMockTransactions());
+                  return;
+                }
+                
+                // Now try to communicate with the newly injected content script
+                setTimeout(() => {
+                  chrome.tabs.sendMessage(tab.id!, { action: "parseTransactions" }, (newResponse) => {
+                    if (chrome.runtime.lastError || !newResponse) {
+                      console.error("Error after injection:", chrome.runtime.lastError);
+                      resolve(getMockTransactions());
+                      return;
+                    }
+                    
+                    if (newResponse.success && newResponse.transactions.length > 0) {
+                      resolve(newResponse.transactions);
+                    } else {
+                      console.log("No transactions found or error in content script after injection");
+                      resolve(getMockTransactions());
+                    }
+                  });
+                }, 500); // Give the content script a moment to initialize
+              }
+            );
+          } else if (response && response.success && response.transactions.length > 0) {
+            // Content script is already injected and returned transactions
             resolve(response.transactions);
           } else {
-            console.log("No transactions found or error in content script");
+            console.log("Content script returned no transactions");
             resolve(getMockTransactions());
           }
         });
-      } catch (error) {
-        console.error("Error in chrome messaging:", error);
-        resolve(getMockTransactions());
-      }
-    });
+      });
+    } catch (error) {
+      console.error("Error in chrome messaging:", error);
+      return getMockTransactions();
+    }
   } catch (error) {
     console.error("Error parsing transactions:", error);
     return getMockTransactions();
@@ -213,85 +247,11 @@ const getMockTransactions = (): Transaction[] => {
 
 // Function to simulate parsing from different banks
 export const parseTransactionFromBank = (bankName: string): Transaction[] => {
-  // Sample transaction data based on the reference image
-  const sampleTransactions = [
-    {
-      date: "Mar 03, 2025",
-      description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
-      moneyOut: "$90.00",
-      moneyIn: undefined,
-      balance: "$7,754.03"
-    },
-    {
-      date: "Feb 21, 2025",
-      description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
-      moneyOut: "$6,139.00",
-      moneyIn: undefined,
-      balance: "$7,844.03"
-    },
-    {
-      date: "Feb 20, 2025",
-      description: "GOODLIFE CLUBS MSP/DIV",
-      moneyOut: "$45.19",
-      moneyIn: undefined,
-      balance: "$13,983.03"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "TF 3933#3607-829",
-      moneyOut: "$808.00",
-      moneyIn: undefined,
-      balance: "$14,028.22"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "TF 3933#3607-829",
-      moneyOut: "$160.00",
-      moneyIn: undefined,
-      balance: "$14,836.22"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "HANDLING CHG 768332",
-      moneyOut: "$16.00",
-      moneyIn: undefined,
-      balance: "$14,996.22"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "INCOMING WIRE PAYMENT TW, KAO SHENG WEN",
-      moneyOut: undefined,
-      moneyIn: "$14,985.00",
-      balance: "$15,012.22"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "RECURRING PYMNT 17FEB2025APPLE.COM/BILL ON",
-      moneyOut: "$1.12",
-      moneyIn: undefined,
-      balance: "$27.22"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "TF 000519123022775845",
-      moneyOut: "$189.11",
-      moneyIn: undefined,
-      balance: "$28.34"
-    },
-    {
-      date: "Feb 18, 2025",
-      description: "TF 3933#3607-829",
-      moneyOut: undefined,
-      moneyIn: "$100.00",
-      balance: "$217.45"
-    }
-  ];
-  
-  // Return all transactions with added metadata
-  return sampleTransactions.map(transaction => ({
+  // Return mock transactions with the bank name in the metadata
+  return getMockTransactions().map(transaction => ({
     ...transaction,
     metadata: {
-      inputSource: "Manual",
+      inputSource: bankName,
       inputTime: new Date().toISOString()
     }
   }));

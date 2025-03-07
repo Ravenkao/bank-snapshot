@@ -22,7 +22,8 @@
   "content_scripts": [
     {
       "matches": ["*://*.bankofamerica.com/*", "*://*.chase.com/*", "*://*.wellsfargo.com/*", "*://*.citibank.com/*", "*://*.capitalone.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
   "icons": {
