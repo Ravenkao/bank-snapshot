@@ -83,11 +83,9 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
         </table>
       </div>
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-2 z-10 justify-between">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-4 z-10 justify-between">
         <Button 
-          variant="outline" 
-          size="sm"
-          className="flex-1 max-w-[160px]"
+          className="flex-1 bg-[#4339CA] hover:bg-[#3730A3] text-white rounded-full py-3"
           onClick={handleDownloadCSV}
         >
           <Download className="w-4 h-4 mr-2" />
@@ -95,9 +93,7 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
         </Button>
         
         <Button 
-          variant="secondary" 
-          size="sm"
-          className="flex-1 max-w-[160px]"
+          className="flex-1 bg-black hover:bg-gray-800 text-white rounded-full py-3"
           onClick={handleSendToSavi}
         >
           <ExternalLink className="w-4 h-4 mr-2" />
