@@ -29,11 +29,51 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
   };
   
   const handleDownloadCSV = () => {
+    // Create CSV content
+    const headers = ["Date", "Description", "Money Out", "Money In", "Balance"];
+    const csvRows = [headers];
+    
+    // Add transaction data
+    transactions.forEach(transaction => {
+      const row = [
+        formatDate(transaction.date),
+        transaction.description,
+        transaction.moneyOut || "",
+        transaction.moneyIn || "",
+        transaction.balance
+      ];
+      csvRows.push(row);
+    });
+    
+    // Convert to CSV string
+    const csvContent = csvRows
+      .map(row => row
+        .map(cell => 
+          // Handle commas in description by wrapping in quotes
+          typeof cell === 'string' && cell.includes(',') 
+            ? `"${cell.replace(/"/g, '""')}"` 
+            : cell
+        )
+        .join(',')
+      )
+      .join('\n');
+    
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transaction_history_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    
     toast({
       title: "CSV Download",
       description: "Downloading all transaction history as CSV",
       variant: "default",
     });
+    
+    link.click();
+    document.body.removeChild(link);
     
     setTimeout(() => {
       toast({

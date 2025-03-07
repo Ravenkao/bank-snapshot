@@ -2,10 +2,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  FileText, 
+  ArrowLeft,
   AlertCircle, 
-  CheckCircle2,
-  ArrowLeft
+  CheckCircle2
 } from 'lucide-react';
 import { Transaction, parseTransactionFromPage } from '@/utils/parseTransaction';
 import TransactionDetails from './TransactionDetails';
@@ -80,8 +79,12 @@ const TransactionParser = () => {
       ) : (
         <div className="space-y-8">
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-foreground mb-2">
-              <FileText className="h-6 w-6 text-primary" />
+            <div className="inline-flex items-center justify-center mb-2">
+              <img 
+                src="/lovable-uploads/267b7482-a65c-4de2-a9dc-052f913e68fd.png" 
+                alt="Savi Finance Logo" 
+                className="h-24 w-auto"
+              />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Transaction Parser</h1>
             <p className="text-muted-foreground text-balance">

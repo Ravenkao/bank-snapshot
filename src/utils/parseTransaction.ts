@@ -1,3 +1,4 @@
+
 export interface Transaction {
   date: string;
   description: string;
@@ -48,10 +49,24 @@ export const findLogo = (name: string): string | undefined => {
 
 /**
  * Parse transaction data from the current active tab
+ * In a real browser extension, this would inject a script to find and extract 
+ * transaction tables from the page DOM
  */
 export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
   try {
-    // This simulates extracting multiple transactions from a bank statement table
+    // This is a simulation of what would happen in a real extension
+    // The extension would look for tables containing headers like Date, Description, etc.
+    
+    // In a real implementation, we would:
+    // 1. Look for all tables in the DOM
+    // 2. For each table, check if headers contain keywords like 'Date', 'Description', 'Money out', etc.
+    // 3. If a matching table is found, extract row data into Transaction objects
+    
+    // For demonstration purposes, we'll return mock data
+    
+    // Simulate a short delay to make it feel like we're parsing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
     return [
       {
         date: "Mar 03, 2025",
