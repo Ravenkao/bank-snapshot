@@ -55,10 +55,10 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
   };
   
   return (
-    <div className="w-full animate-fade-in relative pb-20">
+    <div className="w-full animate-fade-in">
       <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto mb-14">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 text-left">
@@ -83,20 +83,20 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
         </table>
       </div>
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-4 z-10 justify-between">
+      <div className="flex gap-3 mt-4 justify-between">
         <Button 
-          className="flex-1 bg-[#4339CA] hover:bg-[#3730A3] text-white rounded-full py-3"
+          className="flex items-center justify-center gap-2 text-sm bg-[#4339CA] hover:bg-[#3730A3] text-white rounded-full px-4 py-2"
           onClick={handleDownloadCSV}
         >
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="w-3.5 h-3.5" />
           Download as CSV
         </Button>
         
         <Button 
-          className="flex-1 bg-black hover:bg-gray-800 text-white rounded-full py-3"
+          className="flex items-center justify-center gap-2 text-sm bg-black hover:bg-gray-800 text-white rounded-full px-4 py-2"
           onClick={handleSendToSavi}
         >
-          <ExternalLink className="w-4 h-4 mr-2" />
+          <ExternalLink className="w-3.5 h-3.5" />
           Send to Savi Finance
         </Button>
       </div>
