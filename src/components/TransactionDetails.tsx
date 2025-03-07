@@ -28,17 +28,17 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
     });
   };
   
-  const handleDownloadPDF = () => {
+  const handleDownloadCSV = () => {
     toast({
-      title: "PDF Download",
-      description: "Downloading all transaction history as PDF",
+      title: "CSV Download",
+      description: "Downloading all transaction history as CSV",
       variant: "default",
     });
     
     setTimeout(() => {
       toast({
         title: "Download Complete",
-        description: "All transactions have been downloaded as PDF",
+        description: "All transactions have been downloaded as CSV",
         variant: "default",
       });
     }, 1500);
@@ -55,7 +55,7 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
   };
   
   return (
-    <div className="w-full animate-fade-in relative pb-32">
+    <div className="w-full animate-fade-in relative pb-20">
       <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
       
       <div className="overflow-x-auto">
@@ -83,19 +83,21 @@ const TransactionDetails = ({ transactions }: TransactionDetailsProps) => {
         </table>
       </div>
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 flex flex-col sm:flex-row gap-3 z-10">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 flex gap-2 z-10 justify-between">
         <Button 
           variant="outline" 
-          className="flex-1"
-          onClick={handleDownloadPDF}
+          size="sm"
+          className="flex-1 max-w-[160px]"
+          onClick={handleDownloadCSV}
         >
           <Download className="w-4 h-4 mr-2" />
-          Download as PDF
+          Download as CSV
         </Button>
         
         <Button 
           variant="secondary" 
-          className="flex-1"
+          size="sm"
+          className="flex-1 max-w-[160px]"
           onClick={handleSendToSavi}
         >
           <ExternalLink className="w-4 h-4 mr-2" />

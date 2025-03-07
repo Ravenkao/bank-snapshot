@@ -4,18 +4,11 @@ import { Button } from '@/components/ui/button';
 import { 
   FileText, 
   AlertCircle, 
-  CheckCircle2, 
-  ChevronDown, 
-  Building
+  CheckCircle2,
+  ArrowLeft
 } from 'lucide-react';
-import { Transaction, parseTransactionFromPage, parseTransactionFromBank } from '@/utils/parseTransaction';
+import { Transaction, parseTransactionFromPage } from '@/utils/parseTransaction';
 import TransactionDetails from './TransactionDetails';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 
 const TransactionParser = () => {
@@ -60,34 +53,6 @@ const TransactionParser = () => {
     }
   };
   
-  const handleDemoBank = (bankName: string) => {
-    setIsLoading(true);
-    setError(null);
-    
-    // Simulate network delay
-    setTimeout(() => {
-      try {
-        const results = parseTransactionFromBank(bankName);
-        
-        if (results && results.length > 0) {
-          setTransactions(results);
-          toast({
-            title: "Demo transactions loaded",
-            description: `Loaded ${results.length} sample transactions from ${bankName}`,
-            variant: "default",
-          });
-        } else {
-          setError(`Failed to load demo data for ${bankName}`);
-        }
-      } catch (err) {
-        console.error("Error loading demo data:", err);
-        setError("Failed to load demo data");
-      } finally {
-        setIsLoading(false);
-      }
-    }, 800);
-  };
-  
   const resetTransaction = () => {
     setTransactions([]);
     setError(null);
@@ -105,7 +70,8 @@ const TransactionParser = () => {
               onClick={resetTransaction}
               className="text-gray-500 hover:text-gray-700"
             >
-              Parse Another
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
             </Button>
           </div>
           
@@ -131,47 +97,6 @@ const TransactionParser = () => {
             >
               {isLoading ? "Parsing..." : "Parse Transactions"}
             </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or try a demo
-                </span>
-              </div>
-            </div>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-between"
-                  disabled={isLoading}
-                >
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4" />
-                    <span>Select Demo Bank</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-[240px]">
-                <DropdownMenuItem onClick={() => handleDemoBank("Chase")}>
-                  Chase Bank
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDemoBank("Bank of America")}>
-                  Bank of America
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDemoBank("Wells Fargo")}>
-                  Wells Fargo
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDemoBank("Capital One")}>
-                  Capital One
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
           
           {error && (
