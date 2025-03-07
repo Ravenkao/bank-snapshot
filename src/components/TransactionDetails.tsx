@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Transaction } from '@/utils/parseTransaction';
 import Logo from '@/components/Logo';
@@ -18,7 +19,10 @@ import {
   ChevronDown, 
   ChevronUp,
   Download,
-  ExternalLink
+  ExternalLink,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/components/ui/use-toast";
@@ -32,6 +36,11 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
   const { toast } = useToast();
   
   const formatDate = (dateString: string) => {
+    // If already formatted like "Feb 18, 2025", just return it
+    if (/[A-Za-z]{3}\s\d{1,2},\s\d{4}/.test(dateString)) {
+      return dateString;
+    }
+    
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -71,17 +80,25 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
       <div className="flex items-center justify-between mb-5">
         <div>
           <div className="chip bg-blue-50 text-blue-700 mb-2">
-            {transaction.type}
+            {transaction.type || "Transaction"}
           </div>
-          <h2 className="text-xl font-semibold">{transaction.amount}</h2>
+          <h2 className="text-xl font-semibold truncate max-w-[200px]">
+            {transaction.description?.split(' ')[0]}
+          </h2>
         </div>
         
-        {transaction.category && (
-          <div className="chip bg-gray-100 text-gray-700">
-            {transaction.category}
-          </div>
-        )}
+        <div className="text-right">
+          {transaction.moneyOut && (
+            <div className="text-red-600 font-medium">-{transaction.moneyOut}</div>
+          )}
+          {transaction.moneyIn && (
+            <div className="text-green-600 font-medium">+{transaction.moneyIn}</div>
+          )}
+          <div className="text-sm text-gray-600 mt-1">Balance: {transaction.balance}</div>
+        </div>
       </div>
+      
+      <div className="border-b border-gray-200 my-4"></div>
       
       <div className="space-y-4">
         <div className="transaction-row">
@@ -89,16 +106,54 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
             <Calendar className="w-4 h-4 text-gray-400" />
             <span className="transaction-label">Date</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="transaction-value">{formatDate(transaction.date)}</span>
-            {transaction.recurrence && (
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Repeat className="w-3 h-3" />
-                {transaction.recurrence}
-              </div>
-            )}
-          </div>
+          <span className="transaction-value">{formatDate(transaction.date)}</span>
         </div>
+        
+        <div className="transaction-row">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-gray-400" />
+            <span className="transaction-label">Description</span>
+          </div>
+          <span className="transaction-value text-sm truncate max-w-[200px]">{transaction.description}</span>
+        </div>
+        
+        {transaction.moneyOut && (
+          <div className="transaction-row">
+            <div className="flex items-center gap-2">
+              <ArrowUpRight className="w-4 h-4 text-gray-400" />
+              <span className="transaction-label">Money Out</span>
+            </div>
+            <span className="transaction-value text-red-600">{transaction.moneyOut}</span>
+          </div>
+        )}
+        
+        {transaction.moneyIn && (
+          <div className="transaction-row">
+            <div className="flex items-center gap-2">
+              <ArrowDownLeft className="w-4 h-4 text-gray-400" />
+              <span className="transaction-label">Money In</span>
+            </div>
+            <span className="transaction-value text-green-600">{transaction.moneyIn}</span>
+          </div>
+        )}
+        
+        <div className="transaction-row">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-gray-400" />
+            <span className="transaction-label">Balance</span>
+          </div>
+          <span className="transaction-value">{transaction.balance}</span>
+        </div>
+        
+        {transaction.category && (
+          <div className="transaction-row">
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-gray-400" />
+              <span className="transaction-label">Category</span>
+            </div>
+            <div className="chip bg-purple-50 text-purple-700">{transaction.category}</div>
+          </div>
+        )}
         
         {transaction.paymentSource && (
           <div className="transaction-row">
@@ -134,23 +189,13 @@ const TransactionDetails = ({ transaction }: TransactionDetailsProps) => {
           </div>
         )}
         
-        {transaction.description && (
+        {transaction.recurrence && (
           <div className="transaction-row">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-gray-400" />
-              <span className="transaction-label">Description</span>
+              <Repeat className="w-4 h-4 text-gray-400" />
+              <span className="transaction-label">Recurrence</span>
             </div>
-            <span className="transaction-value">{transaction.description}</span>
-          </div>
-        )}
-        
-        {transaction.tag && (
-          <div className="transaction-row">
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-gray-400" />
-              <span className="transaction-label">Tag</span>
-            </div>
-            <div className="chip bg-purple-50 text-purple-700">{transaction.tag}</div>
+            <span className="transaction-value">{transaction.recurrence}</span>
           </div>
         )}
         

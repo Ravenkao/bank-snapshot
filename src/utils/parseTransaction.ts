@@ -1,10 +1,13 @@
 
 export interface Transaction {
-  type: string;
-  category?: string;
   date: string;
+  description: string;
+  moneyOut?: string;
+  moneyIn?: string;
+  balance: string;
+  type?: string;
+  category?: string;
   recurrence?: string;
-  amount: string;
   paymentSource?: {
     name: string;
     logoUrl?: string;
@@ -14,7 +17,6 @@ export interface Transaction {
     logoUrl?: string;
   };
   receipt?: string;
-  description?: string;
   securityIndicator?: string;
   privacyIndicator?: string;
   tag?: string;
@@ -73,31 +75,30 @@ export const parseTransactionFromPage = async (): Promise<Transaction | null> =>
     // In a real extension, we would inject a content script to parse the DOM
     // For demo purposes, we'll simulate finding a transaction table and extracting data
     
-    // This would be replaced with actual DOM parsing logic in a real extension
+    // This simulates extracting data from a bank statement table like in the image
     const mockTransaction: Transaction = {
-      type: "Purchase",
-      category: "Shopping",
-      date: new Date().toISOString().split('T')[0],
-      recurrence: "Monthly",
-      amount: "$120.50",
+      date: "Mar 03, 2025",
+      description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
+      moneyOut: "$90.00",
+      moneyIn: undefined,
+      balance: "$7,754.03",
+      type: "Transfer",
+      category: "Payments",
       paymentSource: {
-        name: "Chase Credit Card",
+        name: "Checking Account",
         logoUrl: findLogo("chase")
       },
       paymentDestination: {
-        name: "Amazon",
-        logoUrl: findLogo("amazon")
+        name: "Lulu",
+        logoUrl: undefined
       },
-      description: "Amazon Prime subscription",
       securityIndicator: "Verified",
       privacyIndicator: "Private",
-      tag: "Subscription",
       metadata: {
         inputSource: "Automatic",
         inputTime: new Date().toISOString(),
         creator: "Extension"
       },
-      cashback: "2%",
       excludeFromInsights: false
     };
     
@@ -110,38 +111,119 @@ export const parseTransactionFromPage = async (): Promise<Transaction | null> =>
 
 // Function to simulate parsing from different banks
 export const parseTransactionFromBank = (bankName: string): Transaction | null => {
-  // This would be replaced with actual bank-specific parsing logic
-  const transactionTypes = ["Purchase", "Deposit", "Transfer", "Withdrawal", "Payment"];
-  const categories = ["Shopping", "Groceries", "Entertainment", "Travel", "Dining", "Utilities", "Income"];
-  const descriptions = [
-    "Monthly subscription", 
-    "Grocery shopping", 
-    "Online purchase", 
-    "Restaurant meal", 
-    "Utility payment"
+  // Sample transaction data based on the reference image
+  const sampleTransactions = [
+    {
+      date: "Mar 03, 2025",
+      description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
+      moneyOut: "$90.00",
+      moneyIn: undefined,
+      balance: "$7,754.03"
+    },
+    {
+      date: "Feb 21, 2025",
+      description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
+      moneyOut: "$6,139.00",
+      moneyIn: undefined,
+      balance: "$7,844.03"
+    },
+    {
+      date: "Feb 20, 2025",
+      description: "GOODLIFE CLUBS MSP/DIV",
+      moneyOut: "$45.19",
+      moneyIn: undefined,
+      balance: "$13,983.03"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "TF 3933#3607-829",
+      moneyOut: "$808.00",
+      moneyIn: undefined,
+      balance: "$14,028.22"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "TF 3933#3607-829",
+      moneyOut: "$160.00",
+      moneyIn: undefined,
+      balance: "$14,836.22"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "HANDLING CHG 768332",
+      moneyOut: "$16.00",
+      moneyIn: undefined,
+      balance: "$14,996.22"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "INCOMING WIRE PAYMENT TW, KAO SHENG WEN",
+      moneyOut: undefined,
+      moneyIn: "$14,985.00",
+      balance: "$15,012.22"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "RECURRING PYMNT 17FEB2025APPLE.COM/BILL ON",
+      moneyOut: "$1.12",
+      moneyIn: undefined,
+      balance: "$27.22"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "TF 000519123022775845",
+      moneyOut: "$189.11",
+      moneyIn: undefined,
+      balance: "$28.34"
+    },
+    {
+      date: "Feb 18, 2025",
+      description: "TF 3933#3607-829",
+      moneyOut: undefined,
+      moneyIn: "$100.00",
+      balance: "$217.45"
+    }
   ];
-  const stores = ["Amazon", "Walmart", "Target", "Netflix", "Spotify", "Apple", "Uber"];
   
-  const randomType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
-  const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-  const randomAmount = `$${(Math.random() * 200).toFixed(2)}`;
-  const randomStore = stores[Math.floor(Math.random() * stores.length)];
-  const randomDesc = descriptions[Math.floor(Math.random() * descriptions.length)];
+  // Select a random transaction from our sample data
+  const randomTransaction = sampleTransactions[Math.floor(Math.random() * sampleTransactions.length)];
+  
+  // Classify transaction type based on description
+  let type = "Purchase";
+  if (randomTransaction.description.includes("ETRNSFR") || randomTransaction.description.includes("WIRE") || randomTransaction.description.includes("TF ")) {
+    type = "Transfer";
+  } else if (randomTransaction.description.includes("PAYMENT") || randomTransaction.description.includes("PYMNT")) {
+    type = "Payment";
+  } else if (randomTransaction.moneyIn && !randomTransaction.moneyOut) {
+    type = "Deposit";
+  }
+  
+  // Determine a category based on description
+  let category = "Uncategorized";
+  if (randomTransaction.description.includes("BILL")) {
+    category = "Bills";
+  } else if (randomTransaction.description.includes("CLUBS")) {
+    category = "Entertainment";
+  } else if (randomTransaction.description.includes("APPLE")) {
+    category = "Subscriptions";
+  } else if (type === "Transfer") {
+    category = "Transfers";
+  } else if (type === "Deposit") {
+    category = "Income";
+  }
   
   return {
-    type: randomType,
-    category: randomCategory,
-    date: new Date().toISOString().split('T')[0],
-    amount: randomAmount,
+    ...randomTransaction,
+    type,
+    category,
     paymentSource: {
-      name: `${bankName} Card`,
+      name: `${bankName} Account`,
       logoUrl: findLogo(bankName)
     },
-    paymentDestination: {
-      name: randomStore,
-      logoUrl: findLogo(randomStore)
-    },
-    description: randomDesc,
+    paymentDestination: randomTransaction.moneyOut ? {
+      name: randomTransaction.description.split(' ')[0],
+      logoUrl: findLogo(randomTransaction.description.split(' ')[0])
+    } : undefined,
     securityIndicator: Math.random() > 0.5 ? "Verified" : undefined,
     privacyIndicator: Math.random() > 0.5 ? "Private" : "Public",
     metadata: {
