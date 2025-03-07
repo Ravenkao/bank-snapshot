@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft,
@@ -14,14 +14,20 @@ const TransactionParser = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExtension, setIsExtension] = useState(false);
   const { toast } = useToast();
+
+  // Check if running as Chrome extension
+  useEffect(() => {
+    setIsExtension(typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id);
+  }, []);
 
   const handleParseTransaction = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // In a real extension, this would inject a script to parse the current page
+      // If running as extension, use chrome APIs to parse the current page
       const results = await parseTransactionFromPage();
       
       if (results && results.length > 0) {
@@ -116,7 +122,11 @@ const TransactionParser = () => {
             <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">How It Works</p>
-              <p className="text-sm">Navigate to your bank's transaction page, then click "Parse Transactions" to extract all transaction details.</p>
+              <p className="text-sm">
+                {isExtension 
+                  ? "Navigate to your bank's transaction page, then click 'Parse Transactions' to extract the data." 
+                  : "This extension works on bank websites like Chase, Bank of America, Wells Fargo, and more."}
+              </p>
             </div>
           </div>
         </div>

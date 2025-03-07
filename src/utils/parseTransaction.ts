@@ -48,60 +48,83 @@ export const findLogo = (name: string): string | undefined => {
 };
 
 /**
- * Parse transaction data from the current active tab
- * In a real browser extension, this would inject a script to find and extract 
- * transaction tables from the page DOM
+ * Parse transaction data from the current active tab using content script
  */
 export const parseTransactionFromPage = async (): Promise<Transaction[]> => {
   try {
-    // This is a simulation of what would happen in a real extension
-    // The extension would look for tables containing headers like Date, Description, etc.
+    // Get the active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     
-    // In a real implementation, we would:
-    // 1. Look for all tables in the DOM
-    // 2. For each table, check if headers contain keywords like 'Date', 'Description', 'Money out', etc.
-    // 3. If a matching table is found, extract row data into Transaction objects
+    if (!tab || !tab.id) {
+      console.error("No active tab found");
+      return [];
+    }
     
-    // For demonstration purposes, we'll return mock data
+    // Check if we're on a supported website
+    const url = tab.url || '';
+    const isBankSite = /bank|chase|wellsfargo|citibank|capitalone/i.test(url);
     
-    // Simulate a short delay to make it feel like we're parsing
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return [
-      {
-        date: "Mar 03, 2025",
-        description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
-        moneyOut: "$90.00",
-        moneyIn: undefined,
-        balance: "$7,754.03",
-        metadata: {
-          inputSource: "Automatic",
-          inputTime: new Date().toISOString()
+    if (!isBankSite) {
+      console.log("Not a bank website, using mock data");
+      // If not on a bank site, use sample data for demonstration
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      return [
+        {
+          date: "Mar 03, 2025",
+          description: "INTERAC ETRNSFR SENT LULU 202506015341KAYPVG",
+          moneyOut: "$90.00",
+          moneyIn: undefined,
+          balance: "$7,754.03",
+          metadata: {
+            inputSource: "Demo",
+            inputTime: new Date().toISOString()
+          }
+        },
+        {
+          date: "Feb 21, 2025",
+          description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
+          moneyOut: "$6,139.00",
+          moneyIn: undefined,
+          balance: "$7,844.03",
+          metadata: {
+            inputSource: "Demo",
+            inputTime: new Date().toISOString()
+          }
+        },
+        {
+          date: "Feb 20, 2025",
+          description: "GOODLIFE CLUBS MSP/DIV",
+          moneyOut: "$45.19",
+          moneyIn: undefined,
+          balance: "$13,983.03",
+          metadata: {
+            inputSource: "Demo",
+            inputTime: new Date().toISOString()
+          }
         }
-      },
-      {
-        date: "Feb 21, 2025",
-        description: "BRANCH BILL PAYMENT BRANCH 0389 FLYWIRE",
-        moneyOut: "$6,139.00",
-        moneyIn: undefined,
-        balance: "$7,844.03",
-        metadata: {
-          inputSource: "Automatic",
-          inputTime: new Date().toISOString()
+      ];
+    }
+    
+    // Execute content script to parse transactions
+    console.log("Sending message to content script");
+    
+    return new Promise((resolve) => {
+      chrome.tabs.sendMessage(tab.id!, { action: "parseTransactions" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error communicating with content script:", chrome.runtime.lastError);
+          resolve([]);
+          return;
         }
-      },
-      {
-        date: "Feb 20, 2025",
-        description: "GOODLIFE CLUBS MSP/DIV",
-        moneyOut: "$45.19",
-        moneyIn: undefined,
-        balance: "$13,983.03",
-        metadata: {
-          inputSource: "Automatic",
-          inputTime: new Date().toISOString()
+        
+        if (response && response.success && response.transactions.length > 0) {
+          resolve(response.transactions);
+        } else {
+          console.log("No transactions found or error in content script");
+          resolve([]);
         }
-      }
-    ];
+      });
+    });
   } catch (error) {
     console.error("Error parsing transactions:", error);
     return [];

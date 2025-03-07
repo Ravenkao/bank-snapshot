@@ -1,15 +1,15 @@
 
 {
   "manifest_version": 3,
-  "name": "Transaction Parser",
-  "description": "Parse and analyze bank transaction information",
+  "name": "Savi Finance Transaction Parser",
+  "description": "Parse and analyze bank transaction information with Savi Finance",
   "version": "1.0",
   "action": {
     "default_popup": "index.html",
     "default_icon": {
-      "16": "favicon.ico",
-      "48": "favicon.ico",
-      "128": "favicon.ico"
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
   "permissions": [
@@ -19,9 +19,15 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.bankofamerica.com/*", "*://*.chase.com/*", "*://*.wellsfargo.com/*", "*://*.citibank.com/*", "*://*.capitalone.com/*"],
+      "js": ["content.js"]
+    }
+  ],
   "icons": {
-    "16": "favicon.ico",
-    "48": "favicon.ico",
-    "128": "favicon.ico"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }
