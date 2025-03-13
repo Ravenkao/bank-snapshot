@@ -4,23 +4,31 @@ import { Button } from '@/components/ui/button';
 import { 
   ArrowLeft,
   AlertCircle, 
-  CheckCircle2
+  CheckCircle2,
+  Table as TableIcon
 } from 'lucide-react';
-import { Transaction, parseTransactionFromPage } from '@/utils/parseTransaction';
+import { Transaction, parseTransactionFromPage, getTFSAAccountInfo, TFSAAccount } from '@/utils/parseTransaction';
 import TransactionDetails from './TransactionDetails';
+import TFSAAccountInfo from './TFSAAccountInfo';
 import { useToast } from "@/components/ui/use-toast";
 
 const TransactionParser = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [tfsaAccounts, setTfsaAccounts] = useState<TFSAAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExtension, setIsExtension] = useState(false);
+  const [isWealthsimple, setIsWealthsimple] = useState(false);
   const { toast } = useToast();
 
-  // Check if running as Chrome extension
+  // Check if running as Chrome extension and detect Wealthsimple
   useEffect(() => {
-    // Fix the type error - use a boolean instead of string
     setIsExtension(typeof chrome !== 'undefined' && !!chrome.runtime && !!chrome.runtime.id);
+    
+    // Detect if on Wealthsimple site
+    if (typeof window !== 'undefined') {
+      setIsWealthsimple(window.location.href.includes('wealthsimple.com'));
+    }
   }, []);
 
   const handleParseTransaction = async () => {
@@ -28,16 +36,34 @@ const TransactionParser = () => {
     setError(null);
     
     try {
-      // If running as extension, use chrome APIs to parse the current page
+      // Parse transactions
       const results = await parseTransactionFromPage();
       
       if (results && results.length > 0) {
         setTransactions(results);
-        toast({
-          title: "Transactions parsed",
-          description: `Successfully extracted ${results.length} transaction details`,
-          variant: "default",
-        });
+        
+        // Check if this is Wealthsimple data
+        const isWealthsimpleData = results.some(
+          transaction => transaction.metadata.inputSource.toLowerCase().includes('wealthsimple')
+        );
+        
+        if (isWealthsimpleData) {
+          // Get TFSA account information if from Wealthsimple
+          const accountInfo = await getTFSAAccountInfo();
+          setTfsaAccounts(accountInfo);
+          
+          toast({
+            title: "TFSA data parsed",
+            description: `Successfully extracted TFSA account information and ${results.length} transactions`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Transactions parsed",
+            description: `Successfully extracted ${results.length} transaction details`,
+            variant: "default",
+          });
+        }
       } else {
         setError("No transaction data found on this page");
         toast({
@@ -61,15 +87,23 @@ const TransactionParser = () => {
   
   const resetTransaction = () => {
     setTransactions([]);
+    setTfsaAccounts([]);
     setError(null);
   };
+
+  // Check if we have Wealthsimple data
+  const hasWealthsimpleData = transactions.some(
+    transaction => transaction.metadata.inputSource.toLowerCase().includes('wealthsimple')
+  );
 
   return (
     <div className="w-full max-w-md mx-auto p-6 space-y-6 animate-fade-in">
       {transactions.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Transaction History</h3>
+            <h3 className="text-lg font-medium">
+              {hasWealthsimpleData ? "TFSA Transaction History" : "Transaction History"}
+            </h3>
             <Button
               variant="ghost"
               size="sm"
@@ -80,6 +114,8 @@ const TransactionParser = () => {
               Back
             </Button>
           </div>
+          
+          {tfsaAccounts.length > 0 && <TFSAAccountInfo accounts={tfsaAccounts} />}
           
           <TransactionDetails transactions={transactions} />
         </div>
@@ -93,9 +129,13 @@ const TransactionParser = () => {
                 className="h-24 w-auto"
               />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">Transaction Parser</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {isWealthsimple ? "TFSA Parser" : "Transaction Parser"}
+            </h1>
             <p className="text-muted-foreground text-balance">
-              Extract and analyze your bank transaction history with a single click
+              {isWealthsimple 
+                ? "Extract and analyze your Wealthsimple TFSA account information with a single click" 
+                : "Extract and analyze your bank transaction history with a single click"}
             </p>
           </div>
           
@@ -105,7 +145,7 @@ const TransactionParser = () => {
               onClick={handleParseTransaction}
               disabled={isLoading}
             >
-              {isLoading ? "Parsing..." : "Parse Transactions"}
+              {isLoading ? "Parsing..." : (isWealthsimple ? "Parse TFSA Data" : "Parse Transactions")}
             </Button>
           </div>
           
@@ -120,13 +160,15 @@ const TransactionParser = () => {
           )}
           
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-2 text-blue-700 animate-fade-in">
-            <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <TableIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">How It Works</p>
               <p className="text-sm">
-                {isExtension 
-                  ? "Navigate to your bank's transaction page, then click 'Parse Transactions' to extract the data." 
-                  : "This extension works on bank websites like Chase, Bank of America, Wells Fargo, and more."}
+                {isWealthsimple 
+                  ? "Navigate to your Wealthsimple TFSA account page, then click 'Parse TFSA Data' to extract the information." 
+                  : (isExtension 
+                    ? "Navigate to your bank's transaction page, then click 'Parse Transactions' to extract the data." 
+                    : "This extension works on bank websites like Chase, Bank of America, Wealthsimple, and more.")}
               </p>
             </div>
           </div>

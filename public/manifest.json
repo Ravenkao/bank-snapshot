@@ -21,7 +21,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["*://*.bankofamerica.com/*", "*://*.chase.com/*", "*://*.wellsfargo.com/*", "*://*.citibank.com/*", "*://*.capitalone.com/*"],
+      "matches": ["*://*.bankofamerica.com/*", "*://*.chase.com/*", "*://*.wellsfargo.com/*", "*://*.citibank.com/*", "*://*.capitalone.com/*", "*://*.wealthsimple.com/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
